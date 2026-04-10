@@ -27,13 +27,75 @@ if ($ascii && $half_width) {
 }
 
 our $RX_SPACE      = qr{\s};
-our $RX_UPPER_HALF = qr{['"`]};
-our $RX_LOWER_HALF = qr{[,.]};
-our $RX_FULL       = qr{[^\s'"`,.]};
+our $RX_UPPER_HALF = qr{['"`▀]};
+our $RX_LOWER_HALF = qr{[,.▄]};
+our $RX_FULL       = qr{[^\s'"`,.▀▄]};
 
-our $HALF_HEIGHT_BLOCKS = " ▀▄█";
-our $HALF_WIDTH_BLOCKS  = " ▐▌█";
-our $QUADRANT_BLOCKS    = " ▗▖▄▝▐▞▟▘▚▌▙▀▜▛█";
+our @HALF_WIDTH_HALF_HEIGHT = (
+    qr{\s\s\s\s} => " ",
+    qr{\s\s\s\S} => "▗",
+    qr{\s\s\S\s} => "▖",
+    qr{\s\s\S\S} => "▄",
+    qr{\s\S\s\s} => "▝",
+    qr{\s\S\s\S} => "▐",
+    qr{\s\S\S\s} => "▞",
+    qr{\s\S\S\S} => "▟",
+    qr{\S\s\s\s} => "▘",
+    qr{\S\s\s\S} => "▚",
+    qr{\S\s\S\s} => "▌",
+    qr{\S\s\S\S} => "▙",
+    qr{\S\S\s\s} => "▀",
+    qr{\S\S\s\S} => "▜",
+    qr{\S\S\S\s} => "▛",
+    qr{\S\S\S\S} => "█",
+);
+
+our @HALF_WIDTH = (
+    qr{ ${RX_SPACE}      ${RX_SPACE}      }x => " ",
+    qr{ ${RX_SPACE}      ${RX_LOWER_HALF} }x => "▗",
+    qr{ ${RX_LOWER_HALF} ${RX_SPACE}      }x => "▖",
+    qr{ ${RX_LOWER_HALF} ${RX_LOWER_HALF} }x => "▄",
+    qr{ ${RX_SPACE}      ${RX_UPPER_HALF} }x => "▝",
+    qr{ ${RX_SPACE}      ${RX_FULL}       }x => "▐",
+    qr{ ${RX_LOWER_HALF} ${RX_UPPER_HALF} }x => "▞",
+    qr{ ${RX_LOWER_HALF} ${RX_FULL}       }x => "▟",
+    qr{ ${RX_UPPER_HALF} ${RX_SPACE}      }x => "▘",
+    qr{ ${RX_UPPER_HALF} ${RX_LOWER_HALF} }x => "▚",
+    qr{ ${RX_FULL}       ${RX_SPACE}      }x => "▌",
+    qr{ ${RX_FULL}       ${RX_LOWER_HALF} }x => "▙",
+    qr{ ${RX_UPPER_HALF} ${RX_UPPER_HALF} }x => "▀",
+    qr{ ${RX_UPPER_HALF} ${RX_FULL}       }x => "▜",
+    qr{ ${RX_FULL}       ${RX_UPPER_HALF} }x => "▛",
+    qr{ ${RX_FULL}       ${RX_FULL}       }x => "█",
+);
+
+our @ASCII_HALF_HEIGHT = (
+    qr{\s\s} => " ",
+    qr{\S\s} => "'",
+    qr{\s\S} => ".",
+    qr{\S\S} => ":",
+);
+
+our @HALF_HEIGHT = (
+    qr{\s\s} => " ",
+    qr{\S\s} => "▀",
+    qr{\s\S} => "▄",
+    qr{\S\S} => "█",
+);
+
+our @ASCII_FULL_SIZE = (
+    $RX_SPACE      => " ",
+    $RX_UPPER_HALF => "'",
+    $RX_LOWER_HALF => ".",
+    $RX_FULL       => ":",
+);
+
+our @FULL_SIZE = (
+    $RX_SPACE      => " ",
+    $RX_UPPER_HALF => "▀",
+    $RX_LOWER_HALF => "▄",
+    $RX_FULL       => "█",
+);
 
 our $first_half;
 our $second_half;
@@ -57,57 +119,17 @@ while (<>) {
                 while (length($line_2) < length($line_1)) {
                     $line_2 .= " ";
                 }
-                my $length = max(length($line_1), length($line_2));
                 my $line = "";
-                for (my $i = 0; $i < $length; $i += 2) {
+                for (my $i = 0; $i < length($line_1); $i += 2) {
                     my $top = substr($line_1, $i, 2);
                     my $bot = substr($line_2, $i, 2);
-                    $top = "  " if $top eq "";
-                    $bot = "  " if $bot eq "";
-                    $top =~ s{\s}{ }g;
-                    $top =~ s{\S}{#}g;
-                    $bot =~ s{\s}{ }g;
-                    $bot =~ s{\S}{#}g;
-                    my $str = $top . $bot;
-                    if (     $str eq "    ") {
-                        $line .= " ";
-                    } elsif ($str eq "   #") {
-                        $line .= "▗";
-                    } elsif ($str eq "  # ") {
-                        $line .= "▖";
-                    } elsif ($str eq "  ##") {
-                        $line .= "▄";
-                    } elsif ($str eq " #  ") {
-                        $line .= "▝";
-                    } elsif ($str eq " # #") {
-                        $line .= "▐";
-                    } elsif ($str eq " ## ") {
-                        $line .= "▞";
-                    } elsif ($str eq " ###") {
-                        $line .= "▟";
-                    } elsif ($str eq "#   ") {
-                        $line .= "▘";
-                    } elsif ($str eq "#  #") {
-                        $line .= "▚";
-                    } elsif ($str eq "# # ") {
-                        $line .= "▌";
-                    } elsif ($str eq "# ##") {
-                        $line .= "▙";
-                    } elsif ($str eq "##  ") {
-                        $line .= "▀";
-                    } elsif ($str eq "## #") {
-                        $line .= "▜";
-                    } elsif ($str eq "### ") {
-                        $line .= "▛";
-                    } elsif ($str eq "####") {
-                        $line .= "█";
-                    }
+                    $line .= replace($top . $bot, @HALF_WIDTH_HALF_HEIGHT);
                 }
                 undef $second_half;
                 undef $first_half;
                 print($line, "\n");
             }
-        } else {
+        } else {                # half height, full width
             if (!defined $first_half) {
                 $first_half = $_;
             } else {
@@ -122,9 +144,8 @@ while (<>) {
                 while (length($line_2) < length($line_1)) {
                     $line_2 .= " ";
                 }
-                my $length = max(length($line_1), length($line_2));
                 my $line = "";
-                for (my $i = 0; $i < $length; $i++) {
+                for (my $i = 0; $i < length($line_1); $i++) {
                     my $top = substr($line_1, $i, 1);
                     my $bot = substr($line_2, $i, 1);
                     if (!defined $top || $top eq "") {
@@ -133,18 +154,10 @@ while (<>) {
                     if (!defined $bot || $bot eq "") {
                         $bot = " ";
                     }
-                    if ($top eq " ") {
-                        if ($bot eq " ") {
-                            $line .= " ";
-                        } else {
-                            $line .= $ascii ? "." : "▄";
-                        }
+                    if ($ascii) {
+                        $line .= replace($top . $bot, @ASCII_HALF_HEIGHT);
                     } else {
-                        if ($bot eq " ") {
-                            $line .= $ascii ? "'" : "▀";
-                        } else {
-                            $line .= $ascii ? ":" : "█";
-                        }
+                        $line .= replace($top . $bot, @HALF_HEIGHT);
                     }
                 }
                 undef $second_half;
@@ -153,59 +166,38 @@ while (<>) {
             }
         }
     } else {
-        if ($half_width) {
+        if ($half_width) {      # full height, half width
             $_ .= " " if length($_) % 2 == 1;
             my $line = "";
             for (my $i = 0; $i < length($_); $i += 2) {
                 my $substr = substr($_, $i, 2);
-                if ($substr =~ m{^${RX_SPACE}${RX_SPACE}$}) {
-                    $line .= " ";
-                } elsif ($substr =~ m{^${RX_SPACE}${RX_LOWER_HALF}$}) {
-                    $line .= "▗";
-                } elsif ($substr =~ m{^${RX_SPACE}${RX_FULL}$}) {
-                    $line .= "▐";
-                } elsif ($substr =~ m{^${RX_SPACE}${RX_UPPER_HALF}$}) {
-                    $line .= "▝";
-                } elsif ($substr =~ m{^${RX_LOWER_HALF}${RX_SPACE}$}) {
-                    $line .= "▖";
-                } elsif ($substr =~ m{^${RX_LOWER_HALF}${RX_LOWER_HALF}$}) {
-                    $line .= "▄";
-                } elsif ($substr =~ m{^${RX_LOWER_HALF}${RX_FULL}$}) {
-                    $line .= "▟";
-                } elsif ($substr =~ m{^${RX_LOWER_HALF}${RX_UPPER_HALF}$}) {
-                    $line .= "▞";
-                } elsif ($substr =~ m{^${RX_FULL}${RX_SPACE}$}) {
-                    $line .= "▌";
-                } elsif ($substr =~ m{^${RX_FULL}${RX_LOWER_HALF}$}) {
-                    $line .= "▙";
-                } elsif ($substr =~ m{^${RX_FULL}${RX_FULL}$}) {
-                    $line .= "█";
-                } elsif ($substr =~ m{^${RX_FULL}${RX_UPPER_HALF}$}) {
-                    $line .= "▛";
-                } elsif ($substr =~ m{^${RX_UPPER_HALF}${RX_SPACE}$}) {
-                    $line .= "▘";
-                } elsif ($substr =~ m{^${RX_UPPER_HALF}${RX_LOWER_HALF}$}) {
-                    $line .= "▚";
-                } elsif ($substr =~ m{^${RX_UPPER_HALF}${RX_FULL}$}) {
-                    $line .= "▜";
-                } elsif ($substr =~ m{^${RX_UPPER_HALF}${RX_UPPER_HALF}$}) {
-                    $line .= "▀";
-                }
+                $line .= replace($substr, @HALF_WIDTH);
             }
             print($line, "\n");
-        } else {
+        } else {                # full size
             if ($ascii) {
-                s{${RX_SPACE}}{ }g;
-                s{${RX_LOWER_HALF}}{.}g;
-                s{${RX_FULL}}{:}g;
-                s{${RX_UPPER_HALF}}{'}g;
+                s{.}{replace($&, @ASCII_FULL_SIZE)}g;
             } else {
-                s{${RX_SPACE}}{ }g;
-                s{${RX_LOWER_HALF}}{▄}g;
-                s{${RX_FULL}}{█}g;
-                s{${RX_UPPER_HALF}}{▀}g;
+                s{.}{replace($&, @FULL_SIZE)}g;
             }
             print($_, "\n");
         }
     }
+}
+
+sub replace {
+    my ($str, @pairs) = @_;
+    while (scalar @pairs >= 2) {
+        my ($rx, $value) = splice(@pairs, 0, 2);
+        if (ref $rx eq "") {
+            if ($str eq $rx) {
+                return $value;
+            }
+        } elsif (ref $rx eq "Regexp") {
+            if ($str =~ qr{^${rx}$}) {
+                return $value;
+            }
+        }
+    }
+    return " ";
 }
