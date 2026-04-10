@@ -1,0 +1,61 @@
+#!/usr/bin/perl
+use warnings;
+use strict;
+use open IO => ":utf8";
+use Text::Tabs qw(expand);
+use List::Util qw(max);
+
+our $half_height;
+our $half_width;
+
+use Getopt::Long;
+Getopt::Long::Configure(qw(gnu_getopt));
+Getopt::Long::GetOptions(
+    "h|half|half-height" => \$half_height,
+    # "w|half-width" => \$half_width,
+);
+
+our $first_half;
+our $second_half;
+
+while (<>) {
+    s{\R\z}{};
+    $_ = expand($_);
+    if ($half_height) {
+        if (!defined $first_half) {
+            $first_half = $_;
+        } else {
+            $second_half = $_;
+            my $length = max(length($first_half), length($second_half));
+            my $line = "";
+            for (my $i = 0; $i < $length; $i++) {
+                my $top = substr($first_half, $i, 1);
+                my $bot = substr($second_half, $i, 1);
+                if (!defined $top || $top eq "") {
+                    $top = " ";
+                }
+                if (!defined $bot || $bot eq "") {
+                    $bot = " ";
+                }
+                if ($top eq " ") {
+                    if ($bot eq " ") {
+                        $line .= " ";
+                    } else {
+                        $line .= "▄";
+                    }
+                } else {
+                    if ($bot eq " ") {
+                        $line .= "▄";
+                    } else {
+                        $line .= "█";
+                    }
+                }
+            }
+        }
+    } else {
+        s{[,.]}{▄}g;
+        s{[^\s,.\'\`\"]}{█}g;
+        s{[\']}{▀}g;
+        print($_, "\n");
+    }
+}
