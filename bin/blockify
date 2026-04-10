@@ -176,9 +176,9 @@ while (<>) {
             print($line, "\n");
         } else {                # full size
             if ($ascii) {
-                s{.}{replace($&, @ASCII_FULL_SIZE)}g;
+                s{.}{replace($&, @ASCII_FULL_SIZE)}ge;
             } else {
-                s{.}{replace($&, @FULL_SIZE)}g;
+                s{.}{replace($&, @FULL_SIZE)}ge;
             }
             print($_, "\n");
         }

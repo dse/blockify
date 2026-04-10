@@ -105,6 +105,9 @@ while (<>) {
                 $line_1 .= $value->[0];
                 $line_2 .= $value->[1];
             }
+            if ($line_1 =~ m{^[ :]+$}) {
+                s{:}{#}g;
+            }
             print($line_1, "\n", $line_2, "\n");
         } else {
             my $line_1 = "";
@@ -114,14 +117,23 @@ while (<>) {
                 $line_1 .= $value->[0];
                 $line_2 .= $value->[1];
             }
+            if ($line_1 =~ m{^[ :]+$}) {
+                s{:}{#}g;
+            }
             print($line_1, "\n", $line_2, "\n");
         }
     } else {
         if ($half_width) {
-            s{.}{replace($&, @HALF_WIDTH)}g;
+            s{.}{replace($&, @HALF_WIDTH)}ge;
+            if ($_ =~ m{^[ :]+$}) {
+                s{:}{#}g;
+            }
             print($_, "\n");
         } else {
-            s{.}{replace($&, @FULL_SIZE)}g;
+            s{.}{replace($&, @FULL_SIZE)}ge;
+            if ($_ =~ m{^[ :]+$}) {
+                s{:}{#}g;
+            }
             print($_, "\n");
         }
     }
